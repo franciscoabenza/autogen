@@ -18,7 +18,13 @@ import {
   timeAgo,
   truncateText,
 } from "../../utils";
-import { BounceLoader, Card, CardHoverBar, LoadingOverlay } from "../../atoms";
+import {
+  BounceLoader,
+  Card,
+  CardHoverBar,
+  ControlRowView,
+  LoadingOverlay,
+} from "../../atoms";
 import TextArea from "antd/es/input/TextArea";
 
 const ModelsView = ({}: any) => {
@@ -49,8 +55,13 @@ const ModelsView = ({}: any) => {
   );
 
   const [showNewModelModal, setShowNewModelModal] = React.useState(false);
-
   const [showModelModal, setShowModelModal] = React.useState(false);
+
+  const sampleModel: IModelConfig = {
+    model: "gpt-4-1106-preview",
+    description: "Sample OpenAI GPT-4 model",
+    user_id: user?.email,
+  };
 
   const deleteModel = (model: IModelConfig) => {
     setError(null);
@@ -193,27 +204,25 @@ const ModelsView = ({}: any) => {
       },
     ];
     return (
-      <div key={"modelrow" + i} className=" " style={{ width: "200px" }}>
-        <div className="">
-          <Card
-            className="h-full p-2 cursor-pointer"
-            title={
-              <div className="  ">{truncateText(model.model || "", 20)}</div>
-            }
-            onClick={() => {
-              setSelectedModel(model);
-              setShowModelModal(true);
-            }}
-          >
-            <div style={{ minHeight: "65px" }} className="my-2   break-words">
-              {" "}
-              {truncateText(model.description || model.model || "", 70)}
-            </div>
-            <div className="text-xs">{timeAgo(model.updated_at || "")}</div>
-            <CardHoverBar items={cardItems} />
-          </Card>
-        </div>
-      </div>
+      <li key={"modelrow" + i} className=" " style={{ width: "200px" }}>
+        <Card
+          className="h-full p-2 cursor-pointer"
+          title={
+            <div className="  ">{truncateText(model.model || "", 20)}</div>
+          }
+          onClick={() => {
+            setSelectedModel(model);
+            setShowModelModal(true);
+          }}
+        >
+          <div style={{ minHeight: "65px" }} className="my-2   break-words">
+            {" "}
+            {truncateText(model.description || model.model || "", 70)}
+          </div>
+          <div className="text-xs">{timeAgo(model.updated_at || "")}</div>
+          <CardHoverBar items={cardItems} />
+        </Card>
+      </li>
     );
   });
 
@@ -329,62 +338,132 @@ const ModelsView = ({}: any) => {
       >
         <div className="relative ">
           <div className="text-sm my-2">Enter parameters for your model.</div>
-          <Input
-            placeholder="Model Name"
-            value={localModel?.model}
-            onChange={(e) => {
-              setLocalModel({ ...localModel, model: e.target.value });
-            }}
-          />
-          <Input.Password
-            className="mt-2"
-            placeholder="API Key"
-            value={localModel?.api_key}
-            onChange={(e) => {
-              if (localModel) {
-                setLocalModel({ ...localModel, api_key: e.target.value });
-              }
-            }}
-          />
-          <Input
-            className="mt-2"
-            placeholder="Base URL"
-            value={localModel?.base_url}
-            onChange={(e) => {
-              if (localModel) {
-                setLocalModel({ ...localModel, base_url: e.target.value });
-              }
-            }}
-          />
-          <Input
-            className="mt-2"
-            placeholder="API Type (e.g. azure)"
-            value={localModel?.api_type}
-            onChange={(e) => {
-              if (localModel) {
-                setLocalModel({ ...localModel, api_type: e.target.value });
-              }
-            }}
-          />
-          <Input
-            className="mt-2"
-            placeholder="API Version (optional)"
-            value={localModel?.api_version}
-            onChange={(e) => {
-              if (localModel) {
-                setLocalModel({ ...localModel, api_version: e.target.value });
-              }
-            }}
-          />
-          <TextArea
-            className="mt-2"
-            placeholder="Description"
-            value={localModel?.description}
-            onChange={(e) => {
-              if (localModel) {
-                setLocalModel({ ...localModel, description: e.target.value });
-              }
-            }}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <ControlRowView
+                title="Model"
+                className=""
+                description="Model name"
+                value={localModel?.model || ""}
+                control={
+                  <Input
+                    className="mt-2 w-full"
+                    value={localModel?.model}
+                    onChange={(e) => {
+                      if (localModel) {
+                        setLocalModel({ ...localModel, model: e.target.value });
+                      }
+                    }}
+                  />
+                }
+              />
+
+              <ControlRowView
+                title="API Key"
+                className=""
+                description="API Key"
+                value={localModel?.api_key || ""}
+                control={
+                  <Input
+                    className="mt-2 w-full"
+                    value={localModel?.api_key}
+                    onChange={(e) => {
+                      if (localModel) {
+                        setLocalModel({
+                          ...localModel,
+                          api_key: e.target.value,
+                        });
+                      }
+                    }}
+                  />
+                }
+              />
+
+              <ControlRowView
+                title="Base URL"
+                className=""
+                description="Base URL"
+                value={localModel?.base_url || ""}
+                control={
+                  <Input
+                    className="mt-2 w-full"
+                    value={localModel?.base_url}
+                    onChange={(e) => {
+                      if (localModel) {
+                        setLocalModel({
+                          ...localModel,
+                          base_url: e.target.value,
+                        });
+                      }
+                    }}
+                  />
+                }
+              />
+            </div>
+            <div>
+              <ControlRowView
+                title="API Type"
+                className=""
+                description="API Type e.g. azure"
+                value={localModel?.api_type || ""}
+                control={
+                  <Input
+                    className="mt-2 w-full"
+                    value={localModel?.api_type}
+                    onChange={(e) => {
+                      if (localModel) {
+                        setLocalModel({
+                          ...localModel,
+                          api_type: e.target.value,
+                        });
+                      }
+                    }}
+                  />
+                }
+              />
+
+              <ControlRowView
+                title="API Version"
+                className=" "
+                description="API Version, required by Azure Models"
+                value={localModel?.api_version || ""}
+                control={
+                  <Input
+                    className="mt-2 w-full"
+                    value={localModel?.api_version}
+                    onChange={(e) => {
+                      if (localModel) {
+                        setLocalModel({
+                          ...localModel,
+                          api_version: e.target.value,
+                        });
+                      }
+                    }}
+                  />
+                }
+              />
+            </div>
+          </div>
+
+          <ControlRowView
+            title="Description"
+            className="mt-4"
+            description="Description of the model"
+            value={localModel?.description || ""}
+            control={
+              <TextArea
+                className="mt-2 w-full"
+                value={localModel?.description}
+                onChange={(e) => {
+                  if (localModel) {
+                    setLocalModel({
+                      ...localModel,
+                      description: e.target.value,
+                    });
+                  }
+                }}
+              />
+            }
           />
 
           {localModel?.api_type === "azure" && (
@@ -473,7 +552,7 @@ const ModelsView = ({}: any) => {
       />
 
       <ModelModal
-        model={newModel}
+        model={newModel || defaultModel}
         setModel={setNewModel}
         setShowModelModal={setShowNewModelModal}
         showModelModal={showNewModelModal}
@@ -518,7 +597,7 @@ const ModelsView = ({}: any) => {
           {models && models.length > 0 && (
             <div className="w-full  relative">
               <LoadingOverlay loading={loading} />
-              <div className="   flex flex-wrap gap-3">{modelRows}</div>
+              <ul className="   flex flex-wrap gap-3">{modelRows}</ul>
             </div>
           )}
 

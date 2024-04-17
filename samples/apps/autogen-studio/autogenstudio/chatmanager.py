@@ -3,7 +3,7 @@ from datetime import datetime
 import json
 from queue import Queue
 import time
-from typing import Any, List, Dict, Optional, Tuple
+from typing import Any, List, Dict, Optional, Tuple, Union
 import os
 from fastapi import WebSocket, WebSocketDisconnect
 import websockets
@@ -139,7 +139,7 @@ class AutoGenChatManager:
                 else last_message
             )
         elif workflow.summary_method == "llm":
-            model = workflow_manager.config.receiver.config.llm_config.config_list[0]
+            client = workflow_manager.receiver.client
             status_message = SocketMessage(
                 type="agent_status",
                 data={
@@ -150,7 +150,9 @@ class AutoGenChatManager:
             )
             self.send(status_message.dict())
             output = summarize_chat_history(
-                task=message_text, messages=workflow_manager.agent_history, model=model
+                task=message_text,
+                messages=workflow_manager.agent_history,
+                client=client,
             )
 
         elif workflow.summary_method == "none":
@@ -212,7 +214,9 @@ class WebSocketConnectionManager:
         for connection, _ in self.active_connections[:]:
             await self.disconnect(connection)
 
-    async def send_message(self, message: Dict, websocket: WebSocket) -> None:
+    async def send_message(
+        self, message: Union[Dict, str], websocket: WebSocket
+    ) -> None:
         """
         Sends a JSON message to a single WebSocket connection.
 

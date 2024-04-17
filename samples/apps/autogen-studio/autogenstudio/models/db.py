@@ -18,13 +18,14 @@ SQLModel.model_config["protected_namespaces"] = ()
 
 
 class Message(SQLModel, table=True):
+    __table_args__ = {"sqlite_autoincrement": True}
     id: Optional[int] = Field(default=None, primary_key=True)
     created_at: datetime = Field(
-        default=datetime.now(),
+        default_factory=datetime.now,
         sa_column=Column(DateTime(timezone=True), server_default=func.now()),
     )  # pylint: disable=not-callable
     updated_at: datetime = Field(
-        default=datetime.now(),
+        default_factory=datetime.now,
         sa_column=Column(DateTime(timezone=True), onupdate=func.now()),
     )  # pylint: disable=not-callable
     user_id: Optional[str] = None
@@ -37,13 +38,14 @@ class Message(SQLModel, table=True):
 
 
 class Session(SQLModel, table=True):
+    __table_args__ = {"sqlite_autoincrement": True}
     id: Optional[int] = Field(default=None, primary_key=True)
     created_at: datetime = Field(
-        default=datetime.now(),
+        default_factory=datetime.now,
         sa_column=Column(DateTime(timezone=True), server_default=func.now()),
     )  # pylint: disable=not-callable
     updated_at: datetime = Field(
-        default=datetime.now(),
+        default_factory=datetime.now,
         sa_column=Column(DateTime(timezone=True), onupdate=func.now()),
     )  # pylint: disable=not-callable
     user_id: Optional[str] = None
@@ -53,16 +55,19 @@ class Session(SQLModel, table=True):
 
 
 class AgentSkillLink(SQLModel, table=True):
+    __table_args__ = {"sqlite_autoincrement": True}
     agent_id: int = Field(default=None, primary_key=True, foreign_key="agent.id")
     skill_id: int = Field(default=None, primary_key=True, foreign_key="skill.id")
 
 
 class AgentModelLink(SQLModel, table=True):
+    __table_args__ = {"sqlite_autoincrement": True}
     agent_id: int = Field(default=None, primary_key=True, foreign_key="agent.id")
     model_id: int = Field(default=None, primary_key=True, foreign_key="model.id")
 
 
 class Skill(SQLModel, table=True):
+    __table_args__ = {"sqlite_autoincrement": True}
     id: Optional[int] = Field(default=None, primary_key=True)
     created_at: datetime = Field(
         default_factory=datetime.now,
@@ -95,13 +100,14 @@ class LLMConfig(SQLModel, table=False):
 
 
 class Model(SQLModel, table=True):
+    __table_args__ = {"sqlite_autoincrement": True}
     id: Optional[int] = Field(default=None, primary_key=True)
     created_at: datetime = Field(
-        default=datetime.now(),
+        default_factory=datetime.now,
         sa_column=Column(DateTime(timezone=True), server_default=func.now()),
     )  # pylint: disable=not-callable
     updated_at: datetime = Field(
-        default=datetime.now(),
+        default_factory=datetime.now,
         sa_column=Column(DateTime(timezone=True), onupdate=func.now()),
     )  # pylint: disable=not-callable
     user_id: Optional[str] = None
@@ -111,10 +117,6 @@ class Model(SQLModel, table=True):
     api_type: Optional[str] = None
     api_version: Optional[str] = None
     description: Optional[str] = None
-    temperature: float = 0
-    cache_seed: Optional[int] = None
-    timeout: Optional[int] = None
-    max_tokens: Optional[int] = None
     agents: List["Agent"] = Relationship(
         back_populates="models", link_model=AgentModelLink
     )
@@ -156,6 +158,7 @@ class WorkflowAgentType(str, Enum):
 
 
 class WorkflowAgentLink(SQLModel, table=True):
+    __table_args__ = {"sqlite_autoincrement": True}
     workflow_id: int = Field(default=None, primary_key=True, foreign_key="workflow.id")
     agent_id: int = Field(default=None, primary_key=True, foreign_key="agent.id")
     agent_type: WorkflowAgentType = Field(
@@ -165,6 +168,7 @@ class WorkflowAgentLink(SQLModel, table=True):
 
 
 class AgentLink(SQLModel, table=True):
+    __table_args__ = {"sqlite_autoincrement": True}
     parent_id: Optional[int] = Field(
         default=None, foreign_key="agent.id", primary_key=True
     )
@@ -174,13 +178,14 @@ class AgentLink(SQLModel, table=True):
 
 
 class Agent(SQLModel, table=True):
+    __table_args__ = {"sqlite_autoincrement": True}
     id: Optional[int] = Field(default=None, primary_key=True)
     created_at: datetime = Field(
-        default=datetime.now(),
+        default_factory=datetime.now,
         sa_column=Column(DateTime(timezone=True), server_default=func.now()),
     )  # pylint: disable=not-callable
     updated_at: datetime = Field(
-        default=datetime.now(),
+        default_factory=datetime.now,
         sa_column=Column(DateTime(timezone=True), onupdate=func.now()),
     )  # pylint: disable=not-callable
     user_id: Optional[str] = None
@@ -227,13 +232,14 @@ class WorkFlowSummaryMethod(str, Enum):
 
 
 class Workflow(SQLModel, table=True):
+    __table_args__ = {"sqlite_autoincrement": True}
     id: Optional[int] = Field(default=None, primary_key=True)
     created_at: datetime = Field(
-        default=datetime.now(),
+        default_factory=datetime.now,
         sa_column=Column(DateTime(timezone=True), server_default=func.now()),
     )  # pylint: disable=not-callable
     updated_at: datetime = Field(
-        default=datetime.now(),
+        default_factory=datetime.now,
         sa_column=Column(DateTime(timezone=True), onupdate=func.now()),
     )  # pylint: disable=not-callable
     user_id: Optional[str] = None

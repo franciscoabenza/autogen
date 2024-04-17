@@ -12,10 +12,11 @@ import {
   MenuProps,
   message as ToastMessage,
   Tooltip,
+  message,
 } from "antd";
 import * as React from "react";
 import { IChatMessage, IChatSession, IMessage, IStatus } from "../../types";
-import { examplePrompts, getServerUrl, guid } from "../../utils";
+import { examplePrompts, fetchJSON, getServerUrl, guid } from "../../utils";
 import { appContext } from "../../../hooks/provider";
 import MetaDataView from "./metadata";
 import {
@@ -28,14 +29,17 @@ import {
 import { useConfigStore } from "../../../hooks/store";
 
 let socketMsgs: any[] = [];
+
 const ChatBox = ({
   initMessages,
   editable = true,
   connectionId,
+  fetchMessages,
 }: {
   initMessages: IMessage[] | null;
   editable?: boolean;
   connectionId: string;
+  fetchMessages?: () => void;
 }) => {
   const session: IChatSession | null = useConfigStore((state) => state.session);
   const textAreaInputRef = React.useRef<HTMLTextAreaElement>(null);
@@ -350,14 +354,6 @@ const ChatBox = ({
     }
   }, [waitingToReconnect]);
 
-  const chatHistory = (messages: IChatMessage[] | null) => {
-    let history = "";
-    messages?.forEach((message) => {
-      history += message.text + "\n"; // message.sender + ": " + message.text + "\n";
-    });
-    return history;
-  };
-
   const scrollChatBox = (element: any) => {
     element.current?.scroll({
       top: element.current.scrollHeight,
@@ -367,14 +363,29 @@ const ChatBox = ({
 
   const processAgentResponse = (data: any) => {
     if (data && data.status) {
-      // const updatedMessages = parseMessages(data.data);
-      const message = parseMessage(data.data);
-      const messageHolder = Object.assign([], messages);
-      messageHolder.push(message);
-      setTimeout(() => {
+      console.log("received proc data", data);
+      const fetchMessagesUrl = `${serverUrl}/messages?user_id=${user?.email}&session_id=${data.data.session_id}`;
+      const payLoad = {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      };
+      const onSuccess = (data: any) => {
+        if (data && data.status) {
+          const updatedMessages = parseMessages(data.data);
+          setMessages(updatedMessages);
+        } else {
+          message.error(data.message);
+        }
         setLoading(false);
-        setMessages(messageHolder);
-      }, 2000);
+      };
+      const onError = (err: any) => {
+        setError(err);
+        message.error(err.message);
+        setLoading(false);
+      };
+      fetchJSON(fetchMessagesUrl, payLoad, onSuccess, onError);
     } else {
       console.log("error", data);
       // setError(data);
@@ -404,6 +415,7 @@ const ChatBox = ({
       workflow_id: session?.workflow_id,
       connection_id: connectionId,
     };
+    console.log("messagePayload", messagePayload);
 
     const textUrl = `${serverUrl}/messages`;
 

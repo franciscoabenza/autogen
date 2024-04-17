@@ -7,7 +7,7 @@ import shutil
 from pathlib import Path
 import re
 import autogen
-from autogen.oai.client import OpenAIWrapper
+from autogen.oai.client import ModelClient, OpenAIWrapper
 
 from ..models.db import Agent, AgentType, Model, Workflow, WorkflowAgentLink, Skill
 from ..models.dbmanager import DBManager
@@ -275,11 +275,11 @@ install via pip and use --quiet option.
     for skill in skills:
         prompt += f"""
 
-##### Begin of {skill.title} #####
+##### Begin of {skill.name} #####
 
 {skill.content}
 
-#### End of {skill.title} ####
+#### End of {skill.name} ####
 
         """
 
@@ -413,7 +413,28 @@ def workflow_from_id(workflow_id: int, dbmanager: DBManager):
             Skill.model_validate(skill.model_dump(mode="json"))
             for skill in agent.skills
         ]
+        model_exclude = [
+            "id",
+            "agent_id",
+            "created_at",
+            "updated_at",
+            "user_id",
+            "description",
+        ]
+        models = [
+            model.model_dump(mode="json", exclude=model_exclude)
+            for model in agent.models
+        ]
         agent_dict["models"] = [model.model_dump(mode="json") for model in agent.models]
+
+        if len(models) > 0:
+            agent_dict["config"]["llm_config"] = agent_dict.get("config", {}).get(
+                "llm_config", {}
+            )
+            llm_config = agent_dict["config"]["llm_config"]
+            if llm_config:
+                llm_config["config_list"] = models
+            agent_dict["config"]["llm_config"] = llm_config
         agent_dict["agents"] = [get_agent(agent.id) for agent in agent.agents]
         return agent_dict
 
@@ -423,13 +444,13 @@ def workflow_from_id(workflow_id: int, dbmanager: DBManager):
     return workflow
 
 
-def summarize_chat_history(task: str, messages: List[Dict[str, str]], model: Model):
+def summarize_chat_history(
+    task: str, messages: List[Dict[str, str]], client: ModelClient
+):
     """
     Summarize the chat history using the model endpoint and returning the response.
     """
 
-    sanitized_model = sanitize_model(model)
-    client = OpenAIWrapper(config_list=[sanitized_model])
     summarization_system_prompt = f"""
     You are a helpful assistant that is able to review the chat history between a set of agents (userproxy agents, assistants etc) as they try to address a given TASK and provide a summary. Be SUCCINCT but also comprehensive enough to allow others (who cannot see the chat history) understand and recreate the solution.
 

@@ -29,6 +29,7 @@ export interface ILLMConfig {
   timeout?: number;
   cache_seed?: number | null;
   temperature: number;
+  max_tokens: number;
 }
 
 export interface IAgentConfig {

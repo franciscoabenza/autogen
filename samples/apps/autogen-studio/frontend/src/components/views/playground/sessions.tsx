@@ -240,24 +240,24 @@ const SessionsView = ({}: any) => {
         ),
         key: "edit",
       },
-      {
-        label: (
-          <div
-            onClick={() => {
-              console.log("publishing session");
-              publishSession();
-            }}
-          >
-            <GlobeAltIcon
-              role={"button"}
-              title={"Publish"}
-              className="h-4 w-4 mr-1 inline-block"
-            />
-            Publish
-          </div>
-        ),
-        key: "publish",
-      },
+      // {
+      //   label: (
+      //     <div
+      //       onClick={() => {
+      //         console.log("publishing session");
+      //         publishSession();
+      //       }}
+      //     >
+      //       <GlobeAltIcon
+      //         role={"button"}
+      //         title={"Publish"}
+      //         className="h-4 w-4 mr-1 inline-block"
+      //       />
+      //       Publish
+      //     </div>
+      //   ),
+      //   key: "publish",
+      // },
     ];
 
     items.push();
@@ -383,6 +383,10 @@ const SessionsView = ({}: any) => {
             }
           }}
         />
+        <div className="text-xs mt-4">
+          {" "}
+          {timeAgo(localSession?.created_at || "", true)}
+        </div>
       </Modal>
     );
   };

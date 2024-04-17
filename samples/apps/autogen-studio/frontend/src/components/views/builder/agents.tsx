@@ -172,27 +172,29 @@ const AgentsView = ({}: any) => {
       },
     ];
     return (
-      <div key={"agentrow" + i} className=" " style={{ width: "200px" }}>
-        <div className="">
-          <Card
-            className="h-full p-2 cursor-pointer"
-            title={
-              <div className="  ">{truncateText(agent.config.name, 25)}</div>
-            }
-            onClick={() => {
-              setSelectedAgent(agent);
-              setShowAgentModal(true);
-            }}
+      <li key={"agentrow" + i} className=" " style={{ width: "200px" }}>
+        <Card
+          className="h-full p-2 cursor-pointer"
+          title={
+            <div className="  ">{truncateText(agent.config.name, 25)}</div>
+          }
+          onClick={() => {
+            setSelectedAgent(agent);
+            setShowAgentModal(true);
+          }}
+        >
+          <div
+            style={{ minHeight: "65px" }}
+            aria-hidden="true"
+            className="my-2   break-words"
           >
-            <div style={{ minHeight: "65px" }} className="my-2   break-words">
-              {" "}
-              {truncateText(agent.config.description || "", 70)}
-            </div>
-            <div className="text-xs">{timeAgo(agent.updated_at || "")}</div>
-            <CardHoverBar items={cardItems} />
-          </Card>
-        </div>
-      </div>
+            {" "}
+            {truncateText(agent.config.description || "", 70)}
+          </div>
+          <div className="text-xs">{timeAgo(agent.updated_at || "")}</div>
+          <CardHoverBar items={cardItems} />
+        </Card>
+      </li>
     );
   });
 
@@ -353,7 +355,7 @@ const AgentsView = ({}: any) => {
           {agents && agents.length > 0 && (
             <div className="w-full  relative">
               <LoadingOverlay loading={loading} />
-              <div className="   flex flex-wrap gap-3">{agentRows}</div>
+              <ul className="   flex flex-wrap gap-3">{agentRows}</ul>
             </div>
           )}
 

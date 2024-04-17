@@ -195,7 +195,7 @@ const SkillsView = ({}: any) => {
       },
     ];
     return (
-      <div key={"skillrow" + i} className=" " style={{ width: "200px" }}>
+      <li key={"skillrow" + i} className=" " style={{ width: "200px" }}>
         <div>
           {" "}
           <Card
@@ -206,7 +206,11 @@ const SkillsView = ({}: any) => {
               setShowSkillModal(true);
             }}
           >
-            <div style={{ minHeight: "65px" }} className="my-2   break-words">
+            <div
+              style={{ minHeight: "65px" }}
+              className="my-2   break-words"
+              aria-hidden="true"
+            >
               {" "}
               {skill.description
                 ? truncateText(skill.description || "", 70)
@@ -217,7 +221,7 @@ const SkillsView = ({}: any) => {
           </Card>
           <div className="text-right mt-2"></div>
         </div>
-      </div>
+      </li>
     );
   });
 
@@ -283,26 +287,11 @@ const SkillsView = ({}: any) => {
                 placeholder="Skill Name"
                 value={localSkill.name}
                 onChange={(e) => {
-                  const updatedSkill = { ...localSkill, title: e.target.value };
+                  const updatedSkill = { ...localSkill, name: e.target.value };
                   setLocalSkill(updatedSkill);
                 }}
               />
             </div>
-
-            {/* <div className="mb-2">
-              <div className="inline-block  "> Skill Description </div>
-              <TextArea
-                placeholder="Skill Description"
-                value={localSkill.description}
-                onChange={(e) => {
-                  const updatedSkill = {
-                    ...localSkill,
-                    description: e.target.value,
-                  };
-                  setLocalSkill(updatedSkill);
-                }}
-              />
-            </div> */}
 
             <div style={{ height: "70vh" }} className="h-full  mt-2 rounded">
               <MonacoEditor
@@ -390,10 +379,10 @@ const SkillsView = ({}: any) => {
       <div className="mb-2   relative">
         <div className="">
           <div className="flex mt-2 pb-2 mb-2 border-b">
-            <div className="flex-1   font-semibold mb-2 ">
+            <ul className="flex-1   font-semibold mb-2 ">
               {" "}
               Skills ({skillRows.length}){" "}
-            </div>
+            </ul>
             <div>
               <Dropdown.Button
                 type="primary"

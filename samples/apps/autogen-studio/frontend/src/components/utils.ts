@@ -248,14 +248,11 @@ export const formatDuration = (seconds: number) => {
 
 export const sampleAgentConfig = (agent_type: string = "assistant") => {
   const llm_config: ILLMConfig = {
-    config_list: [
-      {
-        model: "gpt-4-1106-preview",
-      },
-    ],
+    config_list: [],
     temperature: 0.1,
     timeout: 600,
     cache_seed: null,
+    max_tokens: 1000,
   };
 
   const userProxyConfig: IAgentConfig = {
@@ -324,17 +321,14 @@ export const sampleAgentConfig = (agent_type: string = "assistant") => {
 };
 
 export const sampleWorkflowConfig = (type = "twoagents") => {
-  const llm_model_config: IModelConfig[] = [
-    {
-      model: "gpt-4-1106-preview",
-    },
-  ];
+  const llm_model_config: IModelConfig[] = [];
 
   const llm_config: ILLMConfig = {
     config_list: llm_model_config,
     temperature: 0.1,
     timeout: 600,
     cache_seed: null,
+    max_tokens: 1000,
   };
 
   const userProxyConfig: IAgentConfig = {
@@ -413,79 +407,72 @@ export const sampleWorkflowConfig = (type = "twoagents") => {
   return workFlowConfig;
 };
 
-export const getModels = () => {
-  const models = [
-    {
-      model: "gpt-4-1106-preview",
-    },
-    {
-      model: "gpt-3.5-turbo-16k",
-    },
-    {
-      model: "TheBloke/zephyr-7B-alpha-AWQ",
-      base_url: "http://localhost:8000/v1",
-    },
-  ];
-  return models;
-};
-
 export const getSampleSkill = () => {
   const content = `
-  ## This is a sample skill. Replace with your own skill function
-  ## In general, a good skill must have 3 sections:
-  ## 1. Imports (import libraries needed for your skill)
-  ## 2. Function definition  AND docstrings (this helps the LLM understand what the function does and how to use it)
-  ## 3. Function body (the actual code that implements the function)
+from typing import List
+import uuid
+import requests  # to perform HTTP requests
+from pathlib import Path
 
-  import numpy as np
-  import matplotlib.pyplot as plt
-  from matplotlib import font_manager as fm
+from openai import OpenAI
 
-  def save_cat_ascii_art_to_png(filename='ascii_cat.png'):
-      """
-      Creates ASCII art of a cat and saves it to a PNG file.
 
-      :param filename: str, the name of the PNG file to save the ASCII art.
-      """
-      # ASCII art string
-      cat_art = [
-          "  /\_/\  ",
-          " ( o.o ) ",
-          " > ^ <  "
-      ]
+def generate_and_save_images(query: str, image_size: str = "1024x1024") -> List[str]:
+    """
+    Function to paint, draw or illustrate images based on the users query or request. Generates images from a given query using OpenAI's DALL-E model and saves them to disk.  Use the code below anytime there is a request to create an image.
 
-      # Determine shape of output array
-      height = len(cat_art)
-      width = max(len(line) for line in cat_art)
+    :param query: A natural language description of the image to be generated.
+    :param image_size: The size of the image to be generated. (default is "1024x1024")
+    :return: A list of filenames for the saved images.
+    """
 
-      # Create a figure and axis to display ASCII art
-      fig, ax = plt.subplots(figsize=(width, height))
-      ax.axis('off')  # Hide axes
+    client = OpenAI()  # Initialize the OpenAI client
+    response = client.images.generate(model="dall-e-3", prompt=query, n=1, size=image_size)  # Generate images
 
-      # Get a monospace font
-      prop = fm.FontProperties(family='monospace')
+    # List to store the file names of saved images
+    saved_files = []
 
-      # Display ASCII art using text
-      for y, line in enumerate(cat_art):
-          ax.text(0, height-y-1, line, fontproperties=prop, fontsize=12)
+    # Check if the response is successful
+    if response.data:
+        for image_data in response.data:
+            # Generate a random UUID as the file name
+            file_name = str(uuid.uuid4()) + ".png"  # Assuming the image is a PNG
+            file_path = Path(file_name)
 
-      # Adjust layout
-      plt.tight_layout()
+            img_url = image_data.url
+            img_response = requests.get(img_url)
+            if img_response.status_code == 200:
+                # Write the binary content to a file
+                with open(file_path, "wb") as img_file:
+                    img_file.write(img_response.content)
+                    print(f"Image saved to {file_path}")
+                    saved_files.append(str(file_path))
+            else:
+                print(f"Failed to download the image from {img_url}")
+    else:
+        print("No image data found in the response!")
 
-      # Save figure to file
-      plt.savefig(filename, dpi=120, bbox_inches='tight', pad_inches=0.1)
-      plt.close(fig)`;
+    # Return the list of saved files
+    return saved_files
+
+
+# Example usage of the function:
+# generate_and_save_images("A cute baby sea otter")
+  `;
 
   const skill: ISkill = {
-    name: "save_cat_ascii_art_to_png",
-    description: "save cat ascii art to png",
+    name: "generate_images",
+    description: "Generate and save images based on a user's query.",
     content: content,
   };
 
   return skill;
 };
 
-export const timeAgo = (dateString: string): string => {
+export const timeAgo = (
+  dateString: string,
+  returnFormatted: boolean = false
+): string => {
   // if dateStr is empty, return empty string
   if (!dateString) {
     return "";
@@ -508,9 +495,19 @@ export const timeAgo = (dateString: string): string => {
   const minutesAgo = Math.floor(timeDifference / (1000 * 60));
   const hoursAgo = Math.floor(minutesAgo / 60);
 
-  // Format the date into a readable format e.g. "November 27"
-  const options: Intl.DateTimeFormatOptions = { month: "long", day: "numeric" };
+  // Format the date into a readable format e.g. "November 27, 2021, 3:45 PM"
+  const options: Intl.DateTimeFormatOptions = {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+  };
   const formattedDate = timestamp.toLocaleDateString(undefined, options);
+
+  if (returnFormatted) {
+    return formattedDate;
+  }
 
   // Determine the time difference string
   let timeAgoStr: string;

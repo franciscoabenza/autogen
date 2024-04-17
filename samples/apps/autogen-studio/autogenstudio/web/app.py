@@ -39,7 +39,6 @@ def message_handler():
             "Active Connections: ",
             [client_id for _, client_id in websocket_manager.active_connections],
         )
-        print("Current message connection id: ", message["connection_id"])
         for connection, socket_client_id in websocket_manager.active_connections:
             if message["connection_id"] == socket_client_id:
                 asyncio.run(websocket_manager.send_message(message, connection))
@@ -136,10 +135,17 @@ def create_entity(model: Any, model_class: Any, filters: dict = None):
         }
 
 
-def list_entity(model_class: Any, filters: dict = None):
+def list_entity(
+    model_class: Any,
+    filters: dict = None,
+    return_json: bool = True,
+    order: str = "desc",
+):
     """List all entities for a user"""
     try:
-        entities = dbmanager.get(model_class, filters=filters, return_json=True)
+        entities = dbmanager.get(
+            model_class, filters=filters, return_json=return_json, order=order
+        )
 
         return {
             "status": True,
@@ -387,7 +393,7 @@ async def delete_session(session_id: int, user_id: str):
 async def list_messages(user_id: str, session_id: str):
     """List all messages for a user"""
     filters = {"user_id": user_id, "session_id": session_id}
-    return list_entity(Message, filters=filters)
+    return list_entity(Message, filters=filters, order="asc", return_json=True)
 
 
 @api.post("/messages")

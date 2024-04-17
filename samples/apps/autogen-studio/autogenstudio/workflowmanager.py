@@ -6,13 +6,9 @@ import autogen
 from autogenstudio.utils import get_skills_from_prompt, clear_folder, sanitize_model
 from datetime import datetime
 from autogenstudio.models.db import (
-    Workflow,
-    WorkflowAgentLink,
     Agent,
     Message,
     SocketMessage,
-    AgentConfig,
-    Skill,
     AgentType,
 )
 
@@ -46,8 +42,8 @@ class WorkflowManager:
         if clear_work_dir:
             clear_folder(self.work_dir)
         self.workflow = workflow
-        self.sender = self.load(workflow["sender"])
-        self.receiver = self.load(workflow["receiver"])
+        self.sender = self.load(workflow.get("sender"))
+        self.receiver = self.load(workflow.get("receiver"))
         self.agent_history = []
 
         if history:
@@ -167,6 +163,8 @@ class WorkflowManager:
 
     def sanitize_agent(self, agent: Dict) -> Agent:
         """ """
+
+        skills = agent.get("skills", [])
         agent = Agent.model_validate(agent)
         agent.config.is_termination_msg = agent.config.is_termination_msg or (
             lambda x: "TERMINATE" in x.get("content", "").rstrip()[-20:]
@@ -189,6 +187,7 @@ class WorkflowManager:
                 # only add key if value is not None
                 sanitized_llm = sanitize_model(llm)
                 config_list.append(sanitized_llm)
+                print("llm config >> ", sanitized_llm)
             agent.config.llm_config.config_list = config_list
         if agent.config.code_execution_config is not False:
             code_execution_config = agent.config.code_execution_config or {}
@@ -197,17 +196,17 @@ class WorkflowManager:
             code_execution_config["use_docker"] = False
             agent.config.code_execution_config = code_execution_config
 
-            if agent.skills:
-                skills_prompt = ""
-                skills_prompt = get_skills_from_prompt(agent.skills, self.work_dir)
-                if agent.config.system_message:
-                    agent.config.system_message = (
-                        agent.config.system_message + "\n\n" + skills_prompt
-                    )
-                else:
-                    agent.config.system_message = (
-                        get_default_system_message(agent.type) + "\n\n" + skills_prompt
-                    )
+        if skills:
+            skills_prompt = ""
+            skills_prompt = get_skills_from_prompt(skills, self.work_dir)
+            if agent.config.system_message:
+                agent.config.system_message = (
+                    agent.config.system_message + "\n\n" + skills_prompt
+                )
+            else:
+                agent.config.system_message = (
+                    get_default_system_message(agent.type) + "\n\n" + skills_prompt
+                )
         return agent
 
     def load(self, agent: Any) -> autogen.Agent:
@@ -220,6 +219,11 @@ class WorkflowManager:
         Returns:
             An instance of the loaded agent.
         """
+        if not agent:
+            raise ValueError(
+                "An agent configuration in this workflow is empty. Please provide a valid agent configuration."
+            )
+
         linked_agents = agent.get("agents", [])
         agent = self.sanitize_agent(agent)
         if agent.type == "groupchat":

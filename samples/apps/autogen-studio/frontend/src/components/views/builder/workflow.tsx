@@ -168,34 +168,31 @@ const WorkflowView = ({}: any) => {
         },
       ];
       return (
-        <div
+        <li
           key={"workflowrow" + i}
           className="block   h-full"
           style={{ width: "200px" }}
         >
-          <div className="  block">
-            {" "}
-            <Card
-              className="  block p-2 cursor-pointer"
-              title={
-                <div className="  ">{truncateText(workflow.name, 25)}</div>
-              }
-              onClick={() => {
-                setSelectedWorkflow(workflow);
-              }}
+          <Card
+            className="  block p-2 cursor-pointer"
+            title={<div className="  ">{truncateText(workflow.name, 25)}</div>}
+            onClick={() => {
+              setSelectedWorkflow(workflow);
+            }}
+          >
+            <div
+              style={{ minHeight: "65px" }}
+              className="break-words  my-2"
+              aria-hidden="true"
             >
-              <div style={{ minHeight: "65px" }} className="break-words  my-2">
-                {" "}
-                {truncateText(workflow.description, 70)}
-              </div>
-              <div className="text-xs">
-                {timeAgo(workflow.updated_at || "")}
-              </div>
+              {" "}
+              {truncateText(workflow.description, 70)}
+            </div>
+            <div className="text-xs">{timeAgo(workflow.updated_at || "")}</div>
 
-              <CardHoverBar items={cardItems} />
-            </Card>
-          </div>
-        </div>
+            <CardHoverBar items={cardItems} />
+          </Card>
+        </li>
       );
     }
   );
@@ -380,7 +377,7 @@ const WorkflowView = ({}: any) => {
               className="w-full relative"
             >
               <LoadingOverlay loading={loading} />
-              <div className="flex flex-wrap gap-3">{workflowRows}</div>
+              <ul className="flex flex-wrap gap-3">{workflowRows}</ul>
             </div>
           )}
           {workflows && workflows.length === 0 && !loading && (

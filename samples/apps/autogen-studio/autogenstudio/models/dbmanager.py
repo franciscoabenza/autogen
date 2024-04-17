@@ -73,26 +73,39 @@ class DBManager:
         }
 
     def get(
-        self, model_class: SQLModel, filters: dict = None, return_json: bool = False
+        self,
+        model_class: SQLModel,
+        filters: dict = None,
+        return_json: bool = False,
+        order: str = "desc",
     ):
         """List all entities for a user"""
-        if filters:
-            conditions = [
-                getattr(model_class, col) == value for col, value in filters.items()
-            ]
-            statement = select(model_class).where(and_(*conditions))
+        result = []
+        try:
+            if filters:
+                conditions = [
+                    getattr(model_class, col) == value for col, value in filters.items()
+                ]
+                statement = select(model_class).where(and_(*conditions))
 
-            if hasattr(model_class, "created_at"):
-                statement = statement.order_by(model_class.created_at.desc())
-        else:
-            statement = select(model_class)
+                if hasattr(model_class, "created_at") and order:
+                    if order == "desc":
+                        statement = statement.order_by(model_class.created_at.desc())
+                    else:
+                        statement = statement.order_by(model_class.created_at.asc())
+            else:
+                statement = select(model_class)
 
-        if return_json:
-            return [
-                self._model_to_dict(row) for row in self.session.exec(statement).all()
-            ]
-        else:
-            return self.session.exec(statement).all()
+            if return_json:
+                result = [
+                    self._model_to_dict(row)
+                    for row in self.session.exec(statement).all()
+                ]
+            else:
+                result = self.session.exec(statement).all()
+        except Exception as e:
+            logger.error("Error while getting %s: %s", model_class, e)
+        return result
 
     def delete(self, model_class: SQLModel, filters: dict = None):
         """Delete an entity"""
